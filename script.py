@@ -35,13 +35,13 @@ data = json.loads(Path(args.data_file).read_text())
 top_cities = top_cities_by_country(data)
 
 # Print top cities for each country with their name, population, and coordinates
-for country, cities in top_cities.items():
-    print(f"Country: {country}")
-    for city in cities:
-        name = city["name"]
-        population = city["population"]
-        coordinates = city["coordinates"]
-        print(f"  - {name}, Population: {population}, Coordinates: ({coordinates['lat']}, {coordinates['lon']})")
+# for country, cities in top_cities.items():
+#     print(f"Country: {country}")
+#     for city in cities:
+#         name = city["name"]
+#         population = city["population"]
+#         coordinates = city["coordinates"]
+#         print(f"  - {name}, Population: {population}, Coordinates: ({coordinates['lat']}, {coordinates['lon']})")
 
 
 import matplotlib.pyplot as plt
@@ -75,7 +75,11 @@ def plot_cities_on_map(cities, out_file, projection=ccrs.Mercator()):
     plt.savefig(out_file, bbox_inches='tight')
     plt.close()
 
+print('List of countries with insufficient cities in dataset:')
 for country, cities in top_cities.items():
-    print(cities)
+    if len(cities) < 10:
+        print(f'{country}: only {len(cities)} cities!')
+        continue
+        
     plot_cities_on_map(cities, Path('images/mercator/').joinpath(f'{country}.svg'))
 
