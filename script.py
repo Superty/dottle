@@ -1,6 +1,7 @@
 import json
 import argparse
 from pathlib import Path
+import math
 
 parser = argparse.ArgumentParser(description="Run perf on all cache models")
 parser.add_argument(
@@ -59,24 +60,38 @@ def plot_cities_on_map(cities, out_file, projection=ccrs.Mercator()):
     # Don't add coastlines for reference
     # ax.coastlines()
 
+    min_population = min(city["population"] for city in cities if city["population"] is not None)
+    max_population = max(city["population"] for city in cities if city["population"] is not None)
+    population_range = max_population - min_population
+
     # Plot each city
     for city in cities:
         lon = city["coordinates"]["lon"]
         lat = city["coordinates"]["lat"]
-        ax.plot(lon, lat, 'ko', transform=ccrs.Geodetic())
+        population = city["population"] if city["population"] is not None else min_population
+        # dot_size = 10 + 90 * ((population - min_population) / population_range)
+        dot_size = math.log2(1 + population)
+
+        opacity=1
+        ax.plot(lon, lat, 'ko', markersize=dot_size, transform=ccrs.Geodetic(), alpha=opacity)
 
         # Don't annotate the city name
         # ax.text(lon + 0.5, lat + 0.5, city["name"], transform=ccrs.Geodetic())
 
-   # Remove the border of the plot
+    # Remove the border of the plot
     for spine in ax.spines.values():
         spine.set_visible(False)
     
-    plt.savefig(out_file, bbox_inches='tight')
+    # original size
+    plt.savefig(out_file)
+    # crop image with padding
+    # plt.savefig(out_file, bbox_inches='tight', pad_inches=1)
     plt.close()
 
 print('List of countries with insufficient cities in dataset:')
-for country, cities in top_cities.items():
+for country in top_cities.keys():
+# for country in ['ES']:
+    cities = top_cities[country]
     if len(cities) < 10:
         print(f'{country}: only {len(cities)} cities!')
         continue
